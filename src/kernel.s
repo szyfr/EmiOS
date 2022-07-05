@@ -32,6 +32,10 @@
 	str r1,[r0]
 .endm
 
+.macro ret
+	mov pc,r14
+.endm
+
 
 // - Input = r0:reg, r1:data
 //mmio_write: 
@@ -100,10 +104,11 @@ uart_init:
 	ldr r1,=0x301
 	str r1,[r0]
 
-	mov pc,r14
+	ret
 
 
-// - Input = r0:c
+// - Input    = r0:c
+// - Destroys = r0,r1
 uart_putc:
 	ldr r1,=UART0_FR
 	ldr r1,[r1]
@@ -113,7 +118,7 @@ uart_putc:
 	ldr r1,=UART0_DR
 	str r0,[r1]
 
-	mov pc,r14
+	ret
 
 
 // - Input = NONE
@@ -126,33 +131,45 @@ uart_getc:
 	ldr r1,=UART0_DR
 	ldr r0,[r1]
 
-	mov pc,r14
+	ret
 
 
 // - Input = r0:str
 uart_puts:
-	mov r1,#0
+	mov r2,#0
 
 .loop:
 	ldr r2,[r0,r1]
+
+	mov r0,r2
+	blx uart_putc
+
 	add r1,r1,#1
 	cmp r2,#0
 	bne .loop
 
 	mov r0,r2
 	
-	mov pc,r14
+	ret
 
 
 
-// - Input = r0, r1, r3
+// - 
 kernel_main:
-	b uart_init
+	blx uart_init
 
 	ldr r0,=hello_str
-	b uart_puts
+	blx uart_puts
 
-	mov pc,r14
+.mainloop:
+	blx uart_getc
+	blx uart_putc
+
+	ldr r0,=0x0A
+	blx uart_putc
+
+	b .mainloop
+
 
 hello_str:
 .ascii "Hello, World"
