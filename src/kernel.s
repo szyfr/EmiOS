@@ -25,6 +25,7 @@
 .equ UART0_ITOP,   (UART0_BASE + 0x88)
 .equ UART0_TDR,    (UART0_BASE + 0x8C)
 
+
 .macro mmio_write p0,p1
 	ldr r0,\p0
 	ldr r1,\p1
@@ -57,9 +58,102 @@ uart_init:
 	ldr r1,=0
 	str r1,[r0]
 
+	ldr r0,=GPPUD
+	ldr r1,=0
+	str r1,[r0]
+
+	ldr r0,=150
+	blx delay
+
+	ldr r0,=GPPUDCLK0
+	ldr r1,=0xC000
+	str r1,[r0]
+
+	ldr r0,=150
+	blx delay
+
+	ldr r0,=GPPUDCLK0
+	ldr r1,=0
+	str r1,[r0]
+
+	ldr r0,=UART0_ICR
+	ldr r1,=0x7FF
+	str r1,[r0]
+
+	ldr r0,=UART0_IBRD
+	ldr r1,=1
+	str r1,[r0]
+
+	ldr r0,=UART0_FBRD
+	ldr r1,=40
+	str r1,[r0]
+
+	ldr r0,=UART0_LCRH
+	ldr r1,=0x70
+	str r1,[r0]
+
+	ldr r0,=UART0_IMSC
+	ldr r1,=0x7F2
+	str r1,[r0]
+
+	ldr r0,=UART0_CR
+	ldr r1,=0x301
+	str r1,[r0]
+
+	mov pc,r14
+
+
+// - Input = r0:c
+uart_putc:
+	ldr r1,=UART0_FR
+	ldr r1,[r1]
+	and r1,r1,#0x20
+	beq uart_putc
+
+	ldr r1,=UART0_DR
+	str r0,[r1]
+
+	mov pc,r14
+
+
+// - Input = NONE
+uart_getc:
+	ldr r1,=UART0_FR
+	ldr r1,[r1]
+	and r1,r1,#0x10
+	beq uart_getc
+
+	ldr r1,=UART0_DR
+	ldr r0,[r1]
+
+	mov pc,r14
+
+
+// - Input = r0:str
+uart_puts:
+	mov r1,#0
+
+.loop:
+	ldr r2,[r0,r1]
+	add r1,r1,#1
+	cmp r2,#0
+	bne .loop
+
+	mov r0,r2
+	
+	mov pc,r14
+
 
 
 // - Input = r0, r1, r3
 kernel_main:
-//	b uart_init
+	b uart_init
+
+	ldr r0,=hello_str
+	b uart_puts
+
 	mov pc,r14
+
+hello_str:
+.ascii "Hello, World"
+.byte 0
