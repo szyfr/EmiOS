@@ -1,176 +1,131 @@
 
-.equ GPIO_BASE, 0x3F200000
+GPIO_BASE:    .int 0x3F200000
+GPPUD:        .int 0x3F200094
+GPPUDCLK0:    .int 0x3F200098
 
-.equ GPPUD,     (GPIO_BASE + 0x94)
-.equ GPPUDCLK0, (GPIO_BASE + 0x98)
-
-.equ UART0_BASE, 0x3F201000
-
-.equ UART0_DR,     (UART0_BASE + 0x00)
-.equ UART0_RSRECR, (UART0_BASE + 0x04)
-.equ UART0_FR,     (UART0_BASE + 0x18)
-.equ UART0_ILPR,   (UART0_BASE + 0x20)
-.equ UART0_IBRD,   (UART0_BASE + 0x24)
-.equ UART0_FBRD,   (UART0_BASE + 0x28)
-.equ UART0_LCRH,   (UART0_BASE + 0x2C)
-.equ UART0_CR,     (UART0_BASE + 0x30)
-.equ UART0_IFLS,   (UART0_BASE + 0x34)
-.equ UART0_IMSC,   (UART0_BASE + 0x38)
-.equ UART0_RIS,    (UART0_BASE + 0x3C)
-.equ UART0_MIS,    (UART0_BASE + 0x40)
-.equ UART0_ICR,    (UART0_BASE + 0x44)
-.equ UART0_DMACR,  (UART0_BASE + 0x48)
-.equ UART0_ITCR,   (UART0_BASE + 0x80)
-.equ UART0_ITIP,   (UART0_BASE + 0x84)
-.equ UART0_ITOP,   (UART0_BASE + 0x88)
-.equ UART0_TDR,    (UART0_BASE + 0x8C)
+UART0_BASE:   .int 0x3F201000
+UART0_DR:     .int 0x3F201000
+UART0_RSRECR: .int 0x3F201004
+UART0_FR:     .int 0x3F201018
+UART0_ILPR:   .int 0x3F201020
+UART0_IBRD:   .int 0x3F201024
+UART0_FBRD:   .int 0x3F201028
+UART0_LCRH:   .int 0x3F20102C
+UART0_CR:     .int 0x3F201030
+UART0_IFLS:   .int 0x3F201034
+UART0_IMSC:   .int 0x3F201038
+UART0_RIS:    .int 0x3F20103C
+UART0_MIS:    .int 0x3F201040
+UART0_ICR:    .int 0x3F201044
+UART0_DMACR:  .int 0x3F201048
+UART0_ITCR:   .int 0x3F201080
+UART0_ITIP:   .int 0x3F201084
+UART0_ITOP:   .int 0x3F201088
+UART0_TDR:    .int 0x3F20108C
 
 
-.macro mmio_write p0,p1
-	ldr r0,\p0
-	ldr r1,\p1
+.macro mmio_write reg,data
+	ldr r0,\reg
+	mov r1,\data
 	str r1,[r0]
 .endm
 
-.macro ret
-	mov pc,r14
+.macro mmio_read reg
+	ldr r1,\reg
+	ldr r0,[r1]
 .endm
 
-
-// - Input = r0:reg, r1:data
-//mmio_write: 
-//	str r1,[r0]
-//	mov pc,r14
-
-
-// - Input = r0:reg
-mmio_read:
-	ldr r0,[r0]
-	mov pc,r14
-
-
-// - Input = r0:count
-delay:
+.macro delay count
+	mov r0,\count
+.delay_\@:
 	subs r0,r0,#1
-	bne delay
-	mov pc,r14
+	bne .delay_\@
+.endm
 
 
 // - Input = NONE
 uart_init:
-	ldr r0,=UART0_CR
-	ldr r1,=0
-	str r1,[r0]
+	mmio_write UART0_CR,#0
+	mmio_write GPPUD,#0
+	delay #150
 
-	ldr r0,=GPPUD
-	ldr r1,=0
-	str r1,[r0]
+	mmio_write GPPUDCLK0,#0xC000
+	delay #150
 
-	ldr r0,=150
-	blx delay
+	mmio_write GPPUDCLK0,#0
+	mmio_write UART0_ICR,#0x7FF
+	mmio_write UART0_IBRD,#1
+	mmio_write UART0_FBRD,#40
+	mmio_write UART0_LCRH,#0x70
+	mmio_write UART0_IMSC,#0x7F2
+	mmio_write UART0_CR,#0x301
 
-	ldr r0,=GPPUDCLK0
-	ldr r1,=0xC000
-	str r1,[r0]
-
-	ldr r0,=150
-	blx delay
-
-	ldr r0,=GPPUDCLK0
-	ldr r1,=0
-	str r1,[r0]
-
-	ldr r0,=UART0_ICR
-	ldr r1,=0x7FF
-	str r1,[r0]
-
-	ldr r0,=UART0_IBRD
-	ldr r1,=1
-	str r1,[r0]
-
-	ldr r0,=UART0_FBRD
-	ldr r1,=40
-	str r1,[r0]
-
-	ldr r0,=UART0_LCRH
-	ldr r1,=0x70
-	str r1,[r0]
-
-	ldr r0,=UART0_IMSC
-	ldr r1,=0x7F2
-	str r1,[r0]
-
-	ldr r0,=UART0_CR
-	ldr r1,=0x301
-	str r1,[r0]
-
-	ret
+	bx lr
 
 
 // - Input    = r0:c
 // - Destroys = r0,r1
 uart_putc:
-	ldr r1,=UART0_FR
-	ldr r1,[r1]
-	and r1,r1,#0x20
-	beq uart_putc
+	ldr r2,UART0_FR
+	ldr r1,[r2]
+	tst r1,#0x20
+	bne uart_putc
+	
+	ldr r2,UART0_DR
+	str r0,[r2]
 
-	ldr r1,=UART0_DR
-	str r0,[r1]
-
-	ret
+	bx lr
 
 
 // - Input = NONE
 uart_getc:
-	ldr r1,=UART0_FR
-	ldr r1,[r1]
-	and r1,r1,#0x10
-	beq uart_getc
-
-	ldr r1,=UART0_DR
+	ldr r1,UART0_FR
 	ldr r0,[r1]
+	and r0,r0,#0x10
+	cmp r0,#0
+	bne uart_getc
 
-	ret
+	mmio_read UART0_DR
+
+	bx lr
 
 
 // - Input = r0:str
 uart_puts:
-	mov r2,#0
+	stmdb sp!,{r4,lr}
+	cpy r4,r0
+	ldrb r0,[r4,#0]
+	cmp r0,#0
+
+	ldmeqia sp!,{r4,pc}
 
 .loop:
-	ldr r2,[r0,r1]
-
-	mov r0,r2
-	blx uart_putc
-
-	add r1,r1,#1
-	cmp r2,#0
+	bl uart_putc
+	ldrb r0,[r4,#1]!
+	cmp r0,#0
 	bne .loop
 
-	mov r0,r2
-	
-	ret
+	ldmia sp!,{r4,pc}
 
 
 
 // - 
 kernel_main:
-	blx uart_init
+	bl uart_init
 
 	ldr r0,=hello_str
-	blx uart_puts
+	bl uart_puts
 
 .mainloop:
-	blx uart_getc
-	blx uart_putc
+	bl uart_getc
+	bl uart_putc
 
 	ldr r0,=0x0A
-	blx uart_putc
+	bl uart_putc
 
 	b .mainloop
 
 
+.section ".rodata"
 hello_str:
-.ascii "Hello, World"
-.byte 0
+.ascii "Hello, World\r\n"
