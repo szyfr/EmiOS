@@ -33,4 +33,4 @@ halt:
 	b halt
 
 
-.include "src/kernel.s"
+.include "src/kernel/kernel.s"
