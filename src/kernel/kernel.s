@@ -3,11 +3,18 @@
 .include "src/kernel/defines.s"
 .include "src/kernel/macros.s"
 .include "src/kernel/uart_functions.s"
+.include "src/kernel/testing.s"
+.include "src/kernel/atag.s"
 
 
 // - Main function
 kernel_main:
 	bl uart_init
+
+	cpy r0,r2
+	bl get_mem_size
+	
+	bl print_reg
 
 	ldr r0,=hello_str
 	bl uart_puts
@@ -16,12 +23,10 @@ kernel_main:
 	bl uart_getc
 	bl uart_putc
 
-	ldr r0,=0x0A
-	bl uart_putc
+	putc #'\n'
 
 	b .mainloop
 
 
-.section ".rodata"
-hello_str:
-.ascii "Hello, World\r\n"
+
+.include "src/kernel/rodata.s"

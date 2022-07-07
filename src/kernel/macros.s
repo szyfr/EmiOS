@@ -28,3 +28,19 @@
 .macro ret
 	bx lr
 .endm
+
+
+// uart putc with input
+.macro putc i
+	mov r0,\i
+	bl uart_putc
+.endm
+
+
+// uart puts with input
+.macro puts i
+	ldr r0,\i
+	bl uart_puts
+.endm
+
+

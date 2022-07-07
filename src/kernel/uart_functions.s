@@ -67,10 +67,10 @@ uart_puts:
 
 	ldmeqia sp!,{r4,pc}
 
-.loop:
+.uart_puts_loop:
 	bl uart_putc
 	ldrb r0,[r4,#1]!
 	cmp r0,#0
-	bne .loop
+	bne .uart_puts_loop
 
 	ldmia sp!,{r4,pc}
