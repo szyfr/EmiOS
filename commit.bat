@@ -3,7 +3,7 @@
 set commitText=%1
 set commitTag=%2
 
-clear
+cls
 
 git add *
 git commit -m %commitText%
