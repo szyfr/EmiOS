@@ -5,6 +5,7 @@
 .include "src/kernel/uart_functions.s"
 .include "src/kernel/testing.s"
 .include "src/kernel/atag.s"
+.include "src/kernel/cmd_reader.s"
 
 
 // - Main function
@@ -13,17 +14,16 @@ kernel_main:
 
 	cpy r0,r2
 	bl get_mem_size
-	
-	bl print_reg
 
 	ldr r0,=hello_str
 	bl uart_puts
 
 .mainloop:
+
+
 	bl uart_getc
 	bl uart_putc
-
-	putc #'\n'
+//	putc #'\n'
 
 	b .mainloop
 

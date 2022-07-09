@@ -1,7 +1,7 @@
 
 
 // - Goes through atags to get total usable memory
-// TODO: Test function on real hardware once having an actual way to show something
+// TODO: Test function on real hardware
 // - Input:    r0:void*
 // - Output:   r0:uint
 // - Destroys: r0,r1,r2,r4
