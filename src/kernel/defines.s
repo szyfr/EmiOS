@@ -27,3 +27,7 @@ ATAG_NONE:    .int 0x00000000
 ATAG_CORE:    .int 0x54410001
 ATAG_MEM:     .int 0x54410002
 
+// Memory
+MEM_CHAROFF:       .int 0x00009FFF
+MEM_TXTBUF:        .int 0x0000A000
+

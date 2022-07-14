@@ -4,8 +4,9 @@
 .include "src/kernel/macros.s"
 .include "src/kernel/uart_functions.s"
 .include "src/kernel/testing.s"
-.include "src/kernel/atag.s"
 .include "src/kernel/cmd_reader.s"
+
+.include "src/kernel/memory/atag.s"
 
 
 // - Main function
@@ -18,12 +19,12 @@ kernel_main:
 	ldr r0,=hello_str
 	bl uart_puts
 
+
 .mainloop:
 
 
-	bl uart_getc
-	bl uart_putc
-//	putc #'\n'
+	bl read_keyboard_input
+
 
 	b .mainloop
 
