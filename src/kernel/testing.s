@@ -3,11 +3,11 @@
 // - Attempts to print input
 // - Input:    r0:uint
 // - Output:   NONE
-// - Destroys: 
+// - Destroys: r0,r3,r4
 print_reg:
 	stmdb sp!,{r4,lr}
 
-	cpy r4,r0
+	mov r4,r0
 
 	ldr r0,=print_reg_start
 	bl uart_puts
@@ -20,7 +20,7 @@ print_reg:
 	bl uart_putc
 
 	cmp r3,#16
-	moveq r0,#'-'
+	moveq r0,#' '
 	bleq uart_putc
 
 	sub r3,r3,#4
@@ -33,6 +33,58 @@ print_reg:
 	bl uart_putc
 
 	putc #'\n'
+
+	ldmia sp!,{r4,pc}
+
+
+// - Attempts to print input pointer
+// - Input:    r0:uint
+// - Output:   NONE
+// - Destroys: r0,r3,r4
+print_reg_addr:
+	stmdb sp!,{r4,lr}
+
+	mov r4,r0
+
+	mov r3,#28
+
+.print_reg_addr_loop:
+	mov r0,r4,lsr r3
+	bl read_4bit
+	bl uart_putc
+
+	cmp r3,#16
+	moveq r0,#'-'
+	bleq uart_putc
+
+	sub r3,r3,#4
+
+	cmp r3,#0
+	bne .print_reg_addr_loop
+
+	mov r0,r4
+	bl read_4bit
+	bl uart_putc
+
+	ldmia sp!,{r4,pc}
+
+
+// - Attempts to print input byte
+// - Input:    r0:uint
+// - Output:   NONE
+// - Destroys: r0,r3,r4
+print_reg_byte:
+	stmdb sp!,{r4,lr}
+
+	mov r4,r0
+
+	mov r0,r4,lsr #4
+	bl read_4bit
+	bl uart_putc
+
+	mov r0,r4
+	bl read_4bit
+	bl uart_putc
 
 	ldmia sp!,{r4,pc}
 

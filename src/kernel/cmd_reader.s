@@ -44,11 +44,16 @@ read_keyboard_input:
 // - Input:    NONE
 // - Output:   r0:command
 // - Destroys: 
+// TODO: Error when non-hex input
+// TODO: multiple output with :NUM_BYTES
 read_textbuffer:
 	stmdb sp!,{r4,lr}
 
 	mov  r1,#MEM_TXTBUF
-	ldrb r0,[r1,#1]
+	mov  r2,#1
+	mov  r4,#0
+	mov  r5,#8
+	ldrb r0,[r1,r2]
 
 	cmp r0,#'<'
 	beq .command_read
@@ -60,14 +65,35 @@ read_textbuffer:
 
 
 .command_read:
-	ldr r2,[r1,#2]
-//	lsl r2,#4
-	
-//	add r1,r1,#1
-//	ldrb r2,[r1]
+	add   r2,#1
+	ldrb  r3,[r1,r2]
 
-	mov r0,r2
-	bl print_reg
+	cmp   r3,#0x0D
+	beq   .command_read_leave
+
+	lsl   r4,#4
+
+	cmp   r3,#0x3A
+	sublt r3,#0x30
+	subge r3,#0x57
+	add   r4,r4,r3
+
+	subs  r5,#1
+	bne   .command_read
+
+.command_read_leave:
+	mov r0,r4
+	mov r5,r4
+	bl  print_reg_addr
+	
+	putc #'\t'
+	putc #':'
+	putc #' '
+
+	ldrb r0,[r5]
+	bl  print_reg_byte
+	
+	putc #'\n'
 
 	ldmia sp!,{r4,pc}
 
