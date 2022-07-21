@@ -23,11 +23,16 @@ UART0_ITIP:   .int 0x3F201084
 UART0_ITOP:   .int 0x3F201088
 UART0_TDR:    .int 0x3F20108C
 
+// Atag
 ATAG_NONE:    .int 0x00000000
 ATAG_CORE:    .int 0x54410001
 ATAG_MEM:     .int 0x54410002
 
 // Memory
-MEM_CHAROFF:       .int 0x00009FFF
-MEM_TXTBUF:        .int 0x0000A000
+MEM_CHAROFF:  .int 0x00009FFF
+MEM_TXTBUF:   .int 0x0000A000
+
+// Command list
+.equ CMD_READ_MEMORY,  0x00
+.equ CMD_WRITE_MEMORY, 0x00
 
