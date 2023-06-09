@@ -1,32 +1,66 @@
 
 
-// - Initializes uart
-// - Input:    NONE
-// - Output:   NONE
-// - Destroys: r0,r1
+//= Initializes uart
+//= Input:    NONE
+//= Output:   NONE
+//= Destroys: r0,r1
 uart_init:
-	mmio_write UART0_CR,#0
-	mmio_write GPPUD,#0
-	delay #150
+	mov r1,#0
+	ldr r0,UART0_CR
+	str r1,[r0]
 
-	mmio_write GPPUDCLK0,#0xC000
-	delay #150
+	ldr r0,GPPUD
+	str r1,[r0]
 
-	mmio_write GPPUDCLK0,#0
-	mmio_write UART0_ICR,#0x7FF
-	mmio_write UART0_IBRD,#1
-	mmio_write UART0_FBRD,#40
-	mmio_write UART0_LCRH,#0x70
-	mmio_write UART0_IMSC,#0x7F2
-	mmio_write UART0_CR,#0x301
+	mov r0,#150
+.delay_1:
+	subs r0,r0,#1
+	bne .delay_1
+
+	mov r1,#0xC000
+	ldr r0,GPPUDCLK0
+	str r1,[r0]
+
+	mov r0,#150
+.delay_2:
+	subs r0,r0,#1
+	bne .delay_2
+
+	mov r1,#0
+	ldr r0,GPPUDCLK0
+	str r1,[r0]
+
+	mov r1,#0x7FF
+	ldr r0,UART0_ICR
+	str r1,[r0]
+
+	mov r1,#1
+	ldr r0,UART0_IBRD
+	str r1,[r0]
+
+	mov r1,#40
+	ldr r0,UART0_FBRD
+	str r1,[r0]
+
+	mov r1,#0x70
+	ldr r0,UART0_LCRH
+	str r1,[r0]
+
+	mov r1,#0x7F2
+	ldr r0,UART0_IMSC
+	str r1,[r0]
+
+	mov r1,#0x301
+	ldr r0,UART0_CR
+	str r1,[r0]
 
 	ret
 
 
-// - Prints input character through uart
-// - Input:    r0:uchar
-// - Output:   NONE
-// - Destroys: r0,r1,r2
+//= Prints input character through uart
+//= Input:    r0:uchar
+//= Output:   NONE
+//= Destroys: r0,r1,r2
 uart_putc:
 	ldr r2,UART0_FR
 	ldr r1,[r2]
@@ -39,10 +73,10 @@ uart_putc:
 	ret
 
 
-// - Gets character from over uart
-// - Input:    NONE
-// - Output:   r0:uchar
-// - Destroys: r0,r1
+//= Gets character from over uart
+//= Input:    NONE
+//= Output:   r0:uchar
+//= Destroys: r0,r1
 uart_getc:
 	ldr r1,UART0_FR
 	ldr r0,[r1]
@@ -55,10 +89,10 @@ uart_getc:
 	ret
 
 
-// - Prints null-terminated string over uart
-// - Input:    r0:char*
-// - Output:   NONE
-// - Destroys: r0,r1,r2,r4
+//= Prints null-terminated string over uart
+//= Input:    r0:char*
+//= Output:   NONE
+//= Destroys: r0,r1,r2,r4
 uart_puts:
 	stmdb sp!,{r4,lr}
 	cpy r4,r0
